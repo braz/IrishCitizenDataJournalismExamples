@@ -9,8 +9,8 @@
 # Output Files:			newres_extrafields.csv
 # Data Output:			
 
-# Version:					1.0
-# Change log:				Initial version
+# Version:					1.1
+# Change log:				Minor corrections for path simplification and variable cleanup.
 
 # Copyright (c) 2010, under the Simplified BSD License.  
 # For more information on FreeBSD see: http://www.opensource.org/licenses/bsd-license.php
@@ -21,7 +21,14 @@ library(ggplot2)
 library(car)
 library(vcd)
 
-midwestHSE2007 <- read.csv("/Users/eoinbrazil/Desktop/interestingRstuff/hse/2007MidWest.csv")
+# Replace the path here with the appropriate one for your machine
+mydatapath = "/Users/eoinbrazil/Desktop/interestingRstuff/hse/"
+
+# Set the working directory to the current location for the data files
+setwd(mydatapath)
+
+# Read the cleaned reservations datafile
+midwestHSE2007 <- read.csv(paste(mydatapath, "2007MidWest.csv", sep=""))
 Area <- unlist(lapply(strsplit(as.character(midwestHSE2007$Pers.Area), split=" "), function(x) unlist(x[1])))
 
 # Format the data adding the new variable, Area
@@ -46,7 +53,7 @@ qplot(Area, Total, data=midwestHSE2007_consultants,shape=expensesizegroup, posit
 # To prevent repetition, it is trivial to place the processing into a function that we can reuse for processing data from other years 
 formatExpenseData <- function(filenameToFormat) {
 	currentHSEFile <- c()
-	currentHSEFile <- read.csv(filenameToFormat)
+	currentHSEFile <- read.csv(paste(mydatapath, filenameToFormat, sep=""))
 	Area <- unlist(lapply(strsplit(as.character(currentHSEFile$Pers.Area), split=" "), function(x) unlist(x[1])))
 	# Format the data adding the new variable, Area
 	currentHSEFile <- data.frame(cbind(currentHSEFile, Area))
@@ -68,9 +75,12 @@ formatExpenseData <- function(filenameToFormat) {
 	return(currentHSEFile_consultants)
 }
 
-midwestHSE2007_consultants <- formatExpenseData("/Users/eoinbrazil/Desktop/interestingRstuff/hse/2007MidWest.csv")
-midwestHSE2008_consultants <- formatExpenseData("/Users/eoinbrazil/Desktop/interestingRstuff/hse/2008MidWest.csv")
-midwestHSE2009_consultants <- formatExpenseData("/Users/eoinbrazil/Desktop/interestingRstuff/hse/2009MidWest.csv")
+# Clean up the earlier use of the 2007 data
+rm(midwestHSE2007, midwestHSE2007_consultants, Area, gradeTitle2007, expensesizegroup)
+
+midwestHSE2007_consultants <- formatExpenseData("2007MidWest.csv")
+midwestHSE2008_consultants <- formatExpenseData("2008MidWest.csv")
+midwestHSE2009_consultants <- formatExpenseData("2009MidWest.csv")
 
 # Lets look at the macro patterns by combining the information from 2007, 2008 and 2009 but firstly add the relevant year as a field to each of the existing data frames
 midwestHSE2007_consultants = transform(midwestHSE2007_consultants, Year="2007")
@@ -116,3 +126,6 @@ qplot(Year, Total, data=midwestHSE_consultants_clare_surgery,shape=Expense.Categ
 
 # A table version of the same information
 midwestHSE_consultants_clare_surgery_table <- structable(Year ~ Full.Name + Expense.Category, data=midwestHSE_consultants_clare_surgery)
+
+# Clean up the variables used for this script
+rm(midwestHSE2007_consultants, midwestHSE2008_consultants, midwestHSE2009_consultants, midwestHSE_consultants_fullnames, expensesizegroup, midwestHSE_consultants_clare, midwestHSE_consultants_clare_surgery, midwestHSE_consultants_clare_surgery_table)
